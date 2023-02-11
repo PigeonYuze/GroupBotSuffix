@@ -29,9 +29,9 @@ object SystemData {
 
 
     val systemCpuLoad: Double get() {
+        val delay = 1_000L
         val bean = SystemInfo().hardware.processor
-        val oldTicks: LongArray = bean.systemCpuLoadTicks
-        return bean.getSystemCpuLoadBetweenTicks(oldTicks)
+        return bean.getSystemCpuLoad(delay)
     }
 
     fun Double.toPercentage(): String {

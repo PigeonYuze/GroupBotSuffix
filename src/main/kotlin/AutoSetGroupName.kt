@@ -46,16 +46,16 @@ object GroupBotSuffix : KotlinPlugin(
             if (botsList.contains(this.bot)) botsList.remove(bot)
         }
         logger.info { "Try to start task" }
-
         fixedRateTimer(
             name = "SetNameTask",
             period = Config.waitTimeMS,
             initialDelay = Config.waitTimeMS
         ) {
             launch {
+                val newSuffix = Config.separator + parseContent()
                 for (bot in botsList) {
                     for (group in bot.groups) {
-                        group.botAsMember.nameCard = bot.nick + Config.separator + parseContent()
+                        group.botAsMember.nameCard = bot.nick + newSuffix
                         delay(Config.waitGroupMS)
                     }
                 }
@@ -92,6 +92,7 @@ object GroupBotSuffix : KotlinPlugin(
         if (arg.isNotEmpty()){
             ret = ret.replaceFirst("%$arg", parseContentImpl(Config.open,arg.toString()))
         }
+        logger.verbose("get-suffix: $ret")
         return ret
     }
 
