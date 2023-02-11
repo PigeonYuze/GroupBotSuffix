@@ -89,6 +89,9 @@ object GroupBotSuffix : KotlinPlugin(
             }
             arg.append(char)
         }
+        if (arg.isNotEmpty()){
+            ret = ret.replaceFirst("%$arg", parseContentImpl(Config.open,arg.toString()))
+        }
         return ret
     }
 
