@@ -9,6 +9,7 @@ import net.mamoe.mirai.Bot
 import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescription
 import net.mamoe.mirai.console.plugin.jvm.KotlinPlugin
 import net.mamoe.mirai.event.GlobalEventChannel
+import net.mamoe.mirai.event.events.BotOfflineEvent
 import net.mamoe.mirai.event.events.BotOnlineEvent
 import net.mamoe.mirai.utils.info
 import java.time.LocalDateTime
@@ -41,7 +42,7 @@ object GroupBotSuffix : KotlinPlugin(
             if (botsList.contains(this.bot)) return@subscribeAlways
             botsList.add(bot)
         }
-        GlobalEventChannel.subscribeAlways<BotOnlineEvent> {
+        GlobalEventChannel.subscribeAlways<BotOfflineEvent> {
             if (botsList.contains(this.bot)) botsList.remove(bot)
         }
         logger.info { "Try to start task" }
