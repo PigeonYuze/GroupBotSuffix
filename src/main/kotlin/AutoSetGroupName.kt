@@ -54,7 +54,7 @@ object GroupBotSuffix : KotlinPlugin(
         ) {
             launch {
                 val newSuffix = Config.separator + parseContent()
-                if (Config.allowlist.size != 1){
+                if (Config.allowlist.size == 1 && Config.allowlist[0] == 114514L){
                     for (groupId in Config.allowlist){
                         for (bot in botsList){
                             var group: Group?
