@@ -2,7 +2,6 @@ package com.pigeonyuze.execute
 
 import oshi.SystemInfo
 import java.lang.management.ManagementFactory
-import java.math.BigDecimal
 
 object SystemData {
 
@@ -11,14 +10,14 @@ object SystemData {
 
         val max = runtime.maxMemory()
         val used = runtime.totalMemory()
-        return BigDecimal(used).div(BigDecimal(max)).toDouble()
+        return (used.toFloat() / max.toFloat()).toDouble()
     }
 
     val systemMemory: Double get() {
         val bean = SystemInfo().hardware.memory
-        val used = bean.available
-        val max = bean.total
-        return BigDecimal(used).div(BigDecimal(max)).toDouble()
+        val used = bean.available //non-zero
+        val max = bean.total //non zero
+        return (used.toFloat() / max.toFloat()).toDouble()
     }
 
     val jvmCpuLoad: Double get() {
@@ -26,7 +25,6 @@ object SystemData {
         val process = SystemInfo().operatingSystem.getProcess(pid)
         return process.processCpuLoadCumulative
     }
-
 
     val systemCpuLoad: Double get() {
         val delay = 1_000L

@@ -8,6 +8,7 @@ import kotlinx.coroutines.launch
 import net.mamoe.mirai.Bot
 import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescription
 import net.mamoe.mirai.console.plugin.jvm.KotlinPlugin
+import net.mamoe.mirai.contact.Group
 import net.mamoe.mirai.event.GlobalEventChannel
 import net.mamoe.mirai.event.events.BotOfflineEvent
 import net.mamoe.mirai.event.events.BotOnlineEvent
@@ -27,7 +28,7 @@ object GroupBotSuffix : KotlinPlugin(
     JvmPluginDescription(
         id = "com.pigeonyuze.group-bot-suffix",
         name = "GroupBotSuffix",
-        version = "1.0.0",
+        version = "1.1.0",
     ) {
         author("鸽子宇泽")
         info("""自动设置bot在所有群聊的群名片信息，可用设置为倒计时以及相关内容""")
@@ -53,6 +54,16 @@ object GroupBotSuffix : KotlinPlugin(
         ) {
             launch {
                 val newSuffix = Config.separator + parseContent()
+                if (Config.allowlist.size != 1){
+                    for (groupId in Config.allowlist){
+                        for (bot in botsList){
+                            var group: Group?
+                            if (bot.getGroup(groupId).also { group = it } == null) continue
+                            group!!.botAsMember.nameCard = bot.nick + newSuffix
+                        }
+                    }
+                    return@launch
+                }
                 for (bot in botsList) {
                     for (group in bot.groups) {
                         group.botAsMember.nameCard = bot.nick + newSuffix

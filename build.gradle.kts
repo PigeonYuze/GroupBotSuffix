@@ -11,7 +11,7 @@ mirai {
 }
 
 group = "com.pigeonyuze"
-version = "1.0.3"
+version = "1.1.0"
 
 repositories {
     maven("https://maven.aliyun.com/repository/public")

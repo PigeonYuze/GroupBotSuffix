@@ -43,6 +43,11 @@ object Config : AutoSavePluginConfig("Setting") {
         """)
     val waitGroupMS: Long by value(100L)
 
+    @Comment("""
+        只在以下群聊开启
+    """)
+    val allowlist: List<Long> by value(listOf(114514L))
+
     enum class SetNameType{
         NOW_TIME,
         HOW_LONG_TO_DISTANCE,
