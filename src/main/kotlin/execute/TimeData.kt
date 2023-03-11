@@ -8,46 +8,17 @@ import java.time.format.DateTimeFormatter
 
 object TimeData {
     fun getHowLongToDistanceSimpleImpl(arg: String): String {
-        //yyyy-MM-dd HH:mm:ss
-        //dd天HH小时ss秒
         val objLocalDateTime = LocalDateTime.parse(
             arg,
             DateTimeFormatter.ofPattern(if (arg.length == 10) "yyyy-MM-dd" else "yyyy-MM-dd HH:mm:ss")
         )
         val nowLocalDateTime = LocalDateTime.now()
-        var days = 0
-
-        val objYear = objLocalDateTime.year
-        val nowYear = nowLocalDateTime.year
-        /* 不在同一年内，按 年份*365 进行计算 */
-        if (objYear - nowYear != 0) {
-            for (year in createRange(objYear,nowYear)) {
-                /* 闰年 */
-                if (year and 3 == 0 && (year % 100 != 0 || year % 400 == 0)) {
-                    days += 366
-                    continue
-                }
-                days += 365
-            }
-        }
-
-        val nowDays = nowLocalDateTime.dayOfYear
-        val objDays = objLocalDateTime.dayOfYear
-        if (objDays - nowDays >= 0) {
-            days += (objDays - nowDays)
-        }else {
-            days -= (nowDays - objDays)
-        }
-
-        var hour = (nowLocalDateTime.hour - objLocalDateTime.hour).ifTrue(nowYear > objYear) {
-            days--
-            24 - nowLocalDateTime.hour
-        }.toPositiveNumberOrZero
-        val minute = (nowLocalDateTime.minute - objLocalDateTime.minute).ifTrue(nowYear > objYear) {
-            hour--
-            60 - nowLocalDateTime.minute
-        }.toPositiveNumberOrZero
-
+        val duration = Duration.between(
+            nowLocalDateTime, objLocalDateTime
+        )
+        val days = duration.toDays()
+        val hour = duration.toHours() % 24
+        val minute = duration.toMinutes() % 60
         return "${days}天${hour}小时${minute}分钟"
     }
 
