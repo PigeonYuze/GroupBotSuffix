@@ -21,15 +21,21 @@
   添加后缀类型的值<br>
   可以为以下内容
    - `NOW_TIME` 现在的时间 可提供参数自行设置 默认为HH:mm:ss
-   - `HOW_LONG_TO_DISTANCE` 距离什么时候还有多久 需要用参数提供指定日期<br>年月日用`-`分割，且位于开头(可不提供年) 时分秒用`:`分割(可不提供)<br> 返回的格式与提供的格式一致
+   - `HOW_LONG_TO_DISTANCE_DETAIL` 距离什么时候还有多久 需要用参数提供指定日期<br>年月日用`-`分割，且位于开头(可不提供年) 时分秒用`:`分割(可不提供)<br>
+  返回`yyyy-MM-dd`格式或`yyyy-MM-dd HH:mm:ss`的信息
+   - `HOW_LONG_TO_DISTANCE_SIMPLE` 距离什么时候还有多久 <br>
+  使用`yyyy-MM-dd`或`yyyy-MM-dd HH:mm:ss`的格式 获取距离这个时间还有多久(`d天h小时m分钟`) <br>
+  如： `2023-06-08 19:00:00` 可返回`88天6小时10分钟`
    - `CPU_LOAD` 系统cpu占用率
    - `JVM_CPU_LOAD` jvm可使用的cpu占用率
    - `MEMORY_LOAD` 系统内存占用率
    - `JVM_MEMORY_LOAD` jvm可使用内存占用率
+   - `RANDOM_TEXT` 由所提供的文本中随机获取文本 **以`|`为分隔符**
 - `content` 
   后缀的内容
   使用`%s`为默认配置的调用
-  使用`%`加参数内容为有参数的配置调用
+  使用`%`加参数内容加`%`为有参数的配置调用 <br>
+  如`%any%`
 - `separator`
   `bot`昵称到后缀的分割(默认会重命名为 `bot` 名称 + 后缀分隔符 + 后缀内容)
 - `waitGroupMS` 
