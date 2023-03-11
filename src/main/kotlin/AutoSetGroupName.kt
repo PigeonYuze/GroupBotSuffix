@@ -28,7 +28,7 @@ object GroupBotSuffix : KotlinPlugin(
     JvmPluginDescription(
         id = "com.pigeonyuze.group-bot-suffix",
         name = "GroupBotSuffix",
-        version = "1.1.0",
+        version = "1.1.1",
     ) {
         author("鸽子宇泽")
         info("""自动设置bot在所有群聊的群名片信息，可用设置为倒计时以及相关内容""")
@@ -54,7 +54,7 @@ object GroupBotSuffix : KotlinPlugin(
         ) {
             launch {
                 val newSuffix = Config.separator + parseContent()
-                if (Config.allowlist.size == 1 && Config.allowlist[0] == 114514L){
+                if (Config.allowlist.isNotEmpty() && Config.allowlist[0] != 114514L){
                     for (groupId in Config.allowlist){
                         for (bot in botsList){
                             var group: Group?
