@@ -7,19 +7,30 @@ import net.mamoe.mirai.console.data.value
 object Config : AutoSavePluginConfig("Setting") {
     @ValueDescription("""
         每次间隔的时间 单位为毫秒
-        不建议将此项设得过快 因为mirai并不主动推送群bot名片修改的事件(用户查询bot群名片/发送信息时才可能修改) 过快并不一定有效
+        
+        不建议将此项设得过快 因为mirai并不主动推送群bot名片修改的事件(用户查询bot群名片/发送信息时才可能修改)
+        
     """)
     val waitTimeMS: Long by value(60_000L)
 
     @ValueDescription(
         """
-        选择的方法，可选以下内容 
-        NOW_TIME (现在的时间 可提供参数自行设置 默认为HH:mm:ss)
-        HOW_LONG_TO_DISTANCE_DETAIL (距离什么时候还有多久 需要用参数提供指定日期(yyyy-MM-dd HH:mm:ss) 默认HH:mm:ss会设置为0:0:0),
-        CPU_LOAD (系统cpu占用率),
-        JVM_CPU_LOAD (jvm可使用的cpu占用率),
-        MEMORY_LOAD (系统内存占用率),
-        JVM_MEMORY_LOAD (jvm可使用内存占用率)
+        选择的方法，可选以下内容 :
+        
+        - NOW_TIME 
+            (现在的时间 可提供参数自行设置 默认为HH:mm:ss)
+        - HOW_LONG_TO_DISTANCE_SIMPLE 
+            (距离什么时候还有多久 需要用参数提供指定日期(yyyy-MM-dd HH:mm:ss) 返回 天数/小时/分钟)
+        - HOW_LONG_TO_DISTANCE_DETAIL 
+            (距离什么时候还有多久 需要用参数提供指定日期(yyyy-MM-dd HH:mm:ss) 默认HH:mm:ss会设置为0:0:0),
+        - CPU_LOAD 
+            (系统cpu占用率),
+        - JVM_CPU_LOAD 
+            (jvm可使用的cpu占用率),
+        - MEMORY_LOAD 
+            (系统内存占用率),
+        - JVM_MEMORY_LOAD 
+            (jvm可使用内存占用率)
         """
     )
     val open: SetNameType by value(SetNameType.NOW_TIME)
@@ -72,8 +83,6 @@ object Config : AutoSavePluginConfig("Setting") {
     enum class SetNameType{
         NOW_TIME,
         HOW_LONG_TO_DISTANCE_DETAIL,
-        /* 向下兼容，保存时进行切换 */
-        HOW_LONG_TO_DISTANCE,
         HOW_LONG_TO_DISTANCE_SIMPLE,
         CPU_LOAD,
         JVM_CPU_LOAD,

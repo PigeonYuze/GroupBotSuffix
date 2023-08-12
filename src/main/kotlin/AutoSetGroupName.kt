@@ -51,9 +51,6 @@ object GroupBotSuffix : KotlinPlugin(
     override fun onEnable() {
         Config.reload()
 
-        if (Config.open == HOW_LONG_TO_DISTANCE) {
-            logger.warning("配置中存在旧的`open`设置, 使用了过时的'HOW_LONG_TO_DISTANCE'!  请及时修改！")
-        }
         /* Mirai-Console 内的生命周期 */
         val parentScope = GlobalEventChannel.parentScope(this)
 
@@ -179,9 +176,6 @@ object GroupBotSuffix : KotlinPlugin(
             }
             HOW_LONG_TO_DISTANCE_DETAIL -> {
                 TimeData.getHowLongToDistanceDetailImpl(arg ?: throwSuppressArgs())
-            }
-            HOW_LONG_TO_DISTANCE -> {
-                TimeData.getHowLongToDistanceImpl(arg ?: throwSuppressArgs())
             }
             HOW_LONG_TO_DISTANCE_SIMPLE -> {
                 TimeData.getHowLongToDistanceSimpleImpl(arg ?: throwSuppressArgs())
