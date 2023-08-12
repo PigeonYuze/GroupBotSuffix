@@ -17,7 +17,7 @@ object RandomText {
 
         do {
             index = args.indices.random()
-        }while (!gotIndex.contains(index))
+        }while (index !in gotIndex)
 
         gotIndex.add(index)
         return args[index]

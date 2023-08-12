@@ -69,16 +69,4 @@ object TimeData {
         return result.format(DateTimeFormatter.ofPattern(pattern.toString()))
         //endregion
     }
-
-    fun getHowLongToDistanceImpl(arg: String) = getHowLongToDistanceDetailImpl(arg)
-
-    private inline fun Int.ifTrue(boolean: Boolean,run: (Int) -> Int) : Int{
-        return if (boolean) run.invoke(this)
-        else this
-    }
-
-    private fun createRange(from: Int,to: Int) = if (to > from) from until to else to until from
-
-    private val Int.toPositiveNumberOrZero: Int
-        get() = if (this >= 0) this else -this
 }
