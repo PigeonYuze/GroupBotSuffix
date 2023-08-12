@@ -1,6 +1,7 @@
 package com.pigeonyuze
 
 import com.pigeonyuze.Config.SetNameType.*
+import com.pigeonyuze.command.SetNamePermissionCommand
 import com.pigeonyuze.execute.RandomText
 import com.pigeonyuze.execute.SystemData
 import com.pigeonyuze.execute.SystemData.toPercentage
@@ -8,6 +9,7 @@ import com.pigeonyuze.execute.TimeData
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import net.mamoe.mirai.Bot
+import net.mamoe.mirai.console.command.CommandManager
 import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescription
 import net.mamoe.mirai.console.plugin.jvm.KotlinPlugin
 import net.mamoe.mirai.contact.Group
@@ -63,8 +65,17 @@ object GroupBotSuffix : KotlinPlugin(
             field = value
         }
 
+    val allowlist by lazy {
+        PluginPermission(Config.allowlist)
+    }
+
+
     override fun onEnable() {
         Config.reload()
+
+        allowlist // Load value
+
+        CommandManager.registerCommand(SetNamePermissionCommand)
 
         /* Mirai-Console 内的生命周期 */
         val parentScope = GlobalEventChannel.parentScope(this)
@@ -77,7 +88,7 @@ object GroupBotSuffix : KotlinPlugin(
                     /* 跳过 未到时间. */
                     return@subscribeAlways
                 }
-                if (Config.allowlist.isNotEmpty() && this.target.id !in Config.allowlist) {
+                if (Config.allowlist.isNotEmpty() && !allowlist.hasPermission(this.target.id)) {
                     /* 跳过 不在白名单中. */
                     return@subscribeAlways
                 }
@@ -104,7 +115,10 @@ object GroupBotSuffix : KotlinPlugin(
         launch(context = this.coroutineContext) {
             delay(Config.waitTimeRange[Config.WAIT_TIME_RANGE_INDEX].first)
             while (true) {
-                logger.info { "Start change the name of bots in each groups!" }
+                if (!Config.isModeLazy) {
+                    logger.info { "Start change the name of bots in each groups!" }
+                }
+
                 implChangeName(
                     if (Config.isModeLazy) { name ->
                         toChangeNames[this.id] = name
@@ -134,8 +148,8 @@ object GroupBotSuffix : KotlinPlugin(
 
     private suspend inline fun implChangeName(impl: Group.(String) -> Unit) {
         val newSuffix = Config.separator + parseContent()
-        if (Config.allowlist.isNotEmpty() && Config.allowlist[0] != 114514L) {
-            for (groupId in Config.allowlist) {
+        if (!allowlist.isAllowAll) {
+            for (groupId in allowlist.white) {
                 for (bot in botsList) {
                     var group: Group?
                     if (bot.getGroup(groupId).also { group = it } == null) continue
@@ -148,6 +162,7 @@ object GroupBotSuffix : KotlinPlugin(
         }
         for (bot in botsList) {
             for (group in bot.groups) {
+                if (!allowlist.hasPermission(group.id)) continue
                 impl(group, bot.nick + newSuffix)
                 delay(Config.waitTimeRange[Config.WAIT_GROUP_RANGE_INDEX].random())
             }
