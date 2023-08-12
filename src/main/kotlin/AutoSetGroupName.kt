@@ -19,7 +19,6 @@ import net.mamoe.mirai.utils.info
 import net.mamoe.mirai.utils.warning
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import kotlin.concurrent.fixedRateTimer
 
 object GroupBotSuffix : KotlinPlugin(
     JvmPluginDescription(
@@ -31,6 +30,7 @@ object GroupBotSuffix : KotlinPlugin(
         info("""自动设置bot在所有群聊的群名片信息，可用设置为倒计时以及相关内容""")
     }
 ) {
+
     private val botsList = mutableListOf<Bot>()
 
     /**
@@ -38,7 +38,8 @@ object GroupBotSuffix : KotlinPlugin(
      *
      * 仅当为惰性修改模式时，此值才会被初始化
      * */
-    private lateinit var toChangeNames: MutableMap<Long,String>
+    private lateinit var toChangeNames: MutableMap<Long, String>
+
     /**
      * 上一次修改的时间
      * - Key 为 群号
@@ -46,14 +47,27 @@ object GroupBotSuffix : KotlinPlugin(
      *
      * 仅当为惰性修改模式时，此值才会被初始化
      * */
-    private lateinit var lastedChangeTime: MutableMap<Long,Long>
+    private lateinit var lastedChangeTime: MutableMap<Long, Long>
+
+    // 理论上的最大值
+    private const val MAX_CALL_COUNT_EACH_SECOND = 30
+
+    private var called = 0
+        set(value) {
+            if (value == MAX_CALL_COUNT_EACH_SECOND + 1) {
+                logger.warning { "超过了每分钟最大修改次数 $MAX_CALL_COUNT_EACH_SECOND! 接下来的请求将会自动拦截" }
+            }
+            if (value == 0 && field > MAX_CALL_COUNT_EACH_SECOND) {
+                logger.info("已重制计时器, 接下来的请求会自动处理")
+            }
+            field = value
+        }
 
     override fun onEnable() {
         Config.reload()
 
         /* Mirai-Console 内的生命周期 */
         val parentScope = GlobalEventChannel.parentScope(this)
-
         if (Config.isModeLazy) {
             toChangeNames = LinkedHashMap()
             lastedChangeTime = LinkedHashMap()
@@ -67,11 +81,11 @@ object GroupBotSuffix : KotlinPlugin(
                     /* 跳过 不在白名单中. */
                     return@subscribeAlways
                 }
-                val newName = toChangeNames[this.target.id] ?:
-                    throw RuntimeException("出现了意向不到的错误: 找不到新的名称. 请将以下数据反馈到 git 仓库\n将要修改的群目标: ${target.id} 运行时数据: $lastedChangeTime , $toChangeNames")
+                val newName = toChangeNames[this.target.id]
+                    ?: throw RuntimeException("出现了意向不到的错误: 找不到新的名称. 请将以下数据反馈到 git 仓库\n将要修改的群目标: ${target.id} 运行时数据: $lastedChangeTime , $toChangeNames")
                 target.botAsMember.nameCard = newName
             }
-        }else {
+        } else {
             logger.warning { "您正在使用非惰性的修改群名方式，这可能会导致一些可能的风险" }
             logger.warning { "详细可见链接: https://github.com/PigeonYuze/GroupBotSuffix/issues/11" }
         }
@@ -85,42 +99,57 @@ object GroupBotSuffix : KotlinPlugin(
         }
 
         logger.info { "Try to start task" }
-        fixedRateTimer(
-            name = "SetNameTask",
-            period = Config.waitTimeMS,
-            initialDelay = Config.waitTimeMS
-        ) {
-            launch {
+
+        // Handle changing name
+        launch(context = this.coroutineContext) {
+            delay(Config.waitTimeRange[Config.WAIT_TIME_RANGE_INDEX].first)
+            while (true) {
+                logger.info { "Start change the name of bots in each groups!" }
                 implChangeName(
                     if (Config.isModeLazy) { name ->
                         toChangeNames[this.id] = name
                     } else { name ->
-                        this.botAsMember.nameCard = name
+                        called++
+                        if (called <= MAX_CALL_COUNT_EACH_SECOND) {
+                            this.botAsMember.nameCard = name
+                        }
                     }
                 )
-            }.start()
-            logger.debug("Set over.")
+
+                logger.debug("Set over.")
+                delay(Config.waitTimeRange[Config.WAIT_TIME_RANGE_INDEX].random())
+            }
         }
-        logger.info { "Start task!" }
+        // Handle setting `called` to 0 every 60 seconds
+        launch(context = this.coroutineContext) {
+            delay(Config.waitTimeRange[Config.WAIT_TIME_RANGE_INDEX].first)
+            while (true) {
+                called = 0
+                delay(60_000)
+            }
+        }
+
+
     }
 
-    private suspend fun implChangeName(impl: Group.(String) -> Unit) {
+    private suspend inline fun implChangeName(impl: Group.(String) -> Unit) {
         val newSuffix = Config.separator + parseContent()
         if (Config.allowlist.isNotEmpty() && Config.allowlist[0] != 114514L) {
             for (groupId in Config.allowlist) {
                 for (bot in botsList) {
                     var group: Group?
                     if (bot.getGroup(groupId).also { group = it } == null) continue
+                    delay(150L)
                     impl(group!!, bot.nick + newSuffix)
                 }
-                delay(Config.waitGroupMS)
+                delay(Config.waitTimeRange[Config.WAIT_GROUP_RANGE_INDEX].random())
             }
             return
         }
         for (bot in botsList) {
             for (group in bot.groups) {
                 impl(group, bot.nick + newSuffix)
-                delay(Config.waitGroupMS)
+                delay(Config.waitTimeRange[Config.WAIT_GROUP_RANGE_INDEX].random())
             }
         }
     }
@@ -165,21 +194,27 @@ object GroupBotSuffix : KotlinPlugin(
             CPU_LOAD -> {
                 SystemData.systemCpuLoad.toPercentage()
             }
+
             JVM_CPU_LOAD -> {
                 SystemData.jvmCpuLoad.toPercentage()
             }
+
             MEMORY_LOAD -> {
                 SystemData.systemMemory.toPercentage()
             }
+
             JVM_MEMORY_LOAD -> {
                 SystemData.jvmMemory.toPercentage()
             }
+
             HOW_LONG_TO_DISTANCE_DETAIL -> {
                 TimeData.getHowLongToDistanceDetailImpl(arg ?: throwSuppressArgs())
             }
+
             HOW_LONG_TO_DISTANCE_SIMPLE -> {
                 TimeData.getHowLongToDistanceSimpleImpl(arg ?: throwSuppressArgs())
             }
+
             RANDOM_TEXT -> {
                 RandomText.randomTextImpl(arg ?: throwSuppressArgs())
             }
