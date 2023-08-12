@@ -48,6 +48,27 @@ object Config : AutoSavePluginConfig("Setting") {
     """)
     val allowlist: List<Long> by value(listOf(114514L))
 
+    @ValueDescription("""
+        修改群名时使用的模式
+        
+        - LAZY 惰性修改群名，仅当 Bot 主动发出信息时才会可能修改群名
+        - RUNTIME (不推荐) 自成功加载插件后，每过指定的时间就会主动更改群名
+        
+        注： 使用 `RUNTIME` 模式可能会导致被 mirai 服务器断开连接
+        详情 -> https://github.com/PigeonYuze/GroupBotSuffix/issues/11
+    """)
+    val runningMode: Mode by value(Mode.LAZY)
+
+    val isModeLazy by lazy {
+        runningMode == Mode.LAZY
+    }
+
+    @Suppress("unused")
+    enum class Mode {
+        LAZY,
+        RUNTIME
+    }
+
     enum class SetNameType{
         NOW_TIME,
         HOW_LONG_TO_DISTANCE_DETAIL,
